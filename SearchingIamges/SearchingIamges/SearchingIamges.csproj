@@ -112,25 +112,15 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="DLL\Emgu.CV.dll">
+    <Content Include="DLL\Emgu.CV.dll" />
+    <Content Include="DLL\Emgu.CV.GPU.dll" />
+    <Content Include="DLL\Emgu.CV.ML.dll" />
+    <Content Include="DLL\Emgu.CV.UI.dll" />
+    <Content Include="DLL\Emgu.Util.dll" />
+    <Content Include="opencv_core220.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="DLL\Emgu.CV.GPU.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="DLL\Emgu.CV.ML.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="DLL\Emgu.CV.UI.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="DLL\Emgu.Util.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="DLL\opencv_core220.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="DLL\opencv_imgproc220.dll">
+    <Content Include="opencv_imgproc220.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
