@@ -1,10 +1,10 @@
 ﻿using System;
+using System.Drawing;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Emgu.CV;
 using Emgu.CV.Structure;
-using System.Drawing;
 using Emgu.CV.CvEnum;
 
 namespace SearchingIamges
@@ -64,7 +64,7 @@ namespace SearchingIamges
             int clusterCount = Int32.Parse(ClusterCount.Text);
             int attempts = Int32.Parse(Attempts.Text);
             Matrix<Single> centers = new Matrix<Single>(clusterCount, source.Rows * source.Cols);
-            CvInvoke.cvKMeans2(samples, clusterCount, finalClusters, term, attempts, IntPtr.Zero, KMeansInitType.PPCenters, IntPtr.Zero, IntPtr.Zero);
+            CvInvoke.cvKMeans2(samples, clusterCount, finalClusters, term, attempts, IntPtr.Zero, 2, IntPtr.Zero, IntPtr.Zero);
         }
 
         Image<Bgr, float> processImage;
