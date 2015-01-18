@@ -36,25 +36,18 @@ namespace SearchingIamges
         {
         }
 
-        ImageSource imgSource;
-        Bitmap bmp;
-        Image<Bgr, float> source;
 
-        private void InitializeImage()
+
+        private Image<Bgr, float> ConvertSourceToImage(ImageSource imgSource)
         {
-            imgSource = OrginalImage.Source;
-            bmp = BitmapSourceConvert.ToBitmap(imgSource as BitmapSource);
-            source = new Image<Bgr, float>(bmp);
+            Bitmap bmp = BitmapSourceConvert.ToBitmap(imgSource as BitmapSource);
+            return new Image<Bgr, float>(bmp);
         }
 
-
-        Matrix<float> samples;
-        Matrix<int> finalClusters;
-
-        private void InitializeStructuresToProcess()
+        private Image<Bgr, float> Quantization(Image<Bgr, float> source)
         {
-            samples = new Matrix<float>(source.Rows * source.Cols, 1, 3);
-            finalClusters = new Matrix<int>(source.Rows * source.Cols, 1);
+            Matrix<float> samples = new Matrix<float>(source.Rows * source.Cols, 1, 3);
+            Matrix<int> finalClusters = new Matrix<int>(source.Rows * source.Cols, 1);
 
             for (int y = 0; y < source.Rows; y++)
             {
@@ -65,41 +58,21 @@ namespace SearchingIamges
                     samples.Data[y + x * source.Rows, 2] = (float)source[y, x].Red;
                 }
             }
-        }
 
-        MCvTermCriteria term;
-
-        private void Quantization()
-        {
             MCvTermCriteria term = new MCvTermCriteria(Convert.ToInt32(Iterations.Text), Convert.ToDouble(Epsilon.Text));
             term.type = TERMCRIT.CV_TERMCRIT_ITER | TERMCRIT.CV_TERMCRIT_EPS;
 
             int clusterCount = Int32.Parse(ClusterCount.Text);
             int attempts = Int32.Parse(Attempts.Text);
-            Matrix<Single> centers = new Matrix<Single>(clusterCount, source.Rows * source.Cols);
             CvInvoke.cvKMeans2(samples, clusterCount, finalClusters, term, attempts, IntPtr.Zero, 2, IntPtr.Zero, IntPtr.Zero);
-        }
 
-        Image<Bgr, float> processImage;
+            Image<Bgr, float> processImage = new Image<Bgr, float>(source.Size);
 
-        private void ReductingNumberColor()
-        {
-            processImage = new Image<Bgr, float>(source.Size);
+            int levels = Int32.Parse(ClusterCount.Text);
+            Bgr[] clusterColors = new Bgr[levels];
 
-            double max;
-            double min;
-            System.Drawing.Point pmin;
-            System.Drawing.Point pmax;
-            finalClusters.MinMax(out min, out max, out pmin, out pmax);
-            int difference = (int)(max - min) + 1;
-            Bgr[] clusterColors = new Bgr[difference];
-            int maxValueColor = 255;
-
-            for (int i = 0; i < difference; i++)
-            {
-                int div = maxValueColor / (difference - 1);
-                clusterColors[i] = new Bgr(i * div, i * div, i * div);
-            }
+            for (int i = 0; i < levels; i++)
+                clusterColors[i] = new Bgr(i * (255 / (levels - 1)), i * (255 / (levels - 1)), i * (255 / (levels - 1)));
 
             for (int y = 0; y < source.Rows; y++)
             {
@@ -109,19 +82,45 @@ namespace SearchingIamges
                     processImage.Draw(new CircleF(p, 0.1f), clusterColors[finalClusters[y + x * source.Rows, 0]], 1);
                 }
             }
+
+            return processImage;
+        }
+
+        private void Histogram(Image<Bgr,float> img)
+        {
+            float[] BlueHist;
+            float[] GreenHist;
+            float[] RedHist;
+
+            DenseHistogram Histo = new DenseHistogram(255, new RangeF(0, 255));
+
+            Image<Gray, float> img2Blue = img[0];
+            Image<Gray, float> img2Green = img[1];
+            Image<Gray, float> img2Red = img[2];
+
+            Histo.Calculate(new Image<Gray, float>[] { img2Blue }, true, null);
+            BlueHist = new float[256];
+            Histo.MatND.ManagedArray.CopyTo(BlueHist, 0);
+
+            Histo.Clear();
+
+            Histo.Calculate(new Image<Gray, float>[] { img2Green }, true, null);
+            GreenHist = new float[256];
+            Histo.MatND.ManagedArray.CopyTo(GreenHist, 0);
+
+            Histo.Clear();
+
+            Histo.Calculate(new Image<Gray, float>[] { img2Red }, true, null);
+            RedHist = new float[256];
+            Histo.MatND.ManagedArray.CopyTo(RedHist, 0);
         }
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
-            InitializeImage();
-
-            InitializeStructuresToProcess();
-
-            Quantization();
-
-            ReductingNumberColor();
-
+            Image<Bgr, float> source = ConvertSourceToImage(OrginalImage.Source);
+            Image<Bgr, float> processImage = Quantization(source);
             ProcessImage.Source = BitmapSourceConvert.ToBitmapSource(processImage);
+            Histogram(processImage);
         }
         #endregion
 
