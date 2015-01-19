@@ -137,8 +137,12 @@
     <Content Include="DLL\Emgu.CV.ML.dll" />
     <Content Include="DLL\Emgu.CV.UI.dll" />
     <Content Include="DLL\Emgu.Util.dll" />
-    <Content Include="opencv_core220.dll" />
-    <Content Include="opencv_imgproc220.dll" />
+    <Content Include="opencv_core220.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="opencv_imgproc220.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Resource Include="Resources\Entypo-license.txt" />
     <Resource Include="Resources\WindowsIcons-license.txt" />
   </ItemGroup>
