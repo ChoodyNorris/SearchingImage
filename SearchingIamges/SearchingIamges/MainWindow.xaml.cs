@@ -64,7 +64,7 @@ namespace SearchingIamges
 
             int clusterCount = Int32.Parse(ClusterCount.Text);
             int attempts = Int32.Parse(Attempts.Text);
-            CvInvoke.cvKMeans2(samples, clusterCount, finalClusters, term, attempts, IntPtr.Zero, 2, IntPtr.Zero, IntPtr.Zero);
+            CvInvoke.cvKMeans2(samples, clusterCount, finalClusters, term, attempts, IntPtr.Zero, 0, IntPtr.Zero, IntPtr.Zero);
 
             Image<Bgr, float> processImage = new Image<Bgr, float>(source.Size);
 
@@ -86,17 +86,13 @@ namespace SearchingIamges
             return processImage;
         }
 
-        private void Histogram(Image<Bgr,float> img)
+        private float[] Histogram(Image<Bgr,float> img)
         {
             float[] BlueHist;
-            float[] GreenHist;
-            float[] RedHist;
 
-            DenseHistogram Histo = new DenseHistogram(255, new RangeF(0, 255));
+            DenseHistogram Histo = new DenseHistogram(256, new RangeF(0, 256));
 
             Image<Gray, float> img2Blue = img[0];
-            Image<Gray, float> img2Green = img[1];
-            Image<Gray, float> img2Red = img[2];
 
             Histo.Calculate(new Image<Gray, float>[] { img2Blue }, true, null);
             BlueHist = new float[256];
@@ -104,15 +100,129 @@ namespace SearchingIamges
 
             Histo.Clear();
 
-            Histo.Calculate(new Image<Gray, float>[] { img2Green }, true, null);
-            GreenHist = new float[256];
-            Histo.MatND.ManagedArray.CopyTo(GreenHist, 0);
+            return BlueHist;
+        }
 
-            Histo.Clear();
+        private float ManhattanDistance(float[] firstHistogram, float[] secondHistogram)
+        {
+            float sum = 0;
+            try
+            {
+                if (firstHistogram.Length == secondHistogram.Length)
+                {
+                    for (int i = 0; i < firstHistogram.Length; i++)
+                    {
+                        sum += Math.Abs(firstHistogram[i] - secondHistogram[i]);
+                    }
+                    return sum;
+                }
+                else
+                {
+                    throw new ArgumentOutOfRangeException("Tablice nie mają identycznych wymiarów");
+                }
+            }
+            catch (ArgumentOutOfRangeException exception)
+            {
+                System.Windows.MessageBoxResult mb = System.Windows.MessageBox.Show(exception.Message,"Alert", MessageBoxButton.OK,MessageBoxImage.Warning);
+                return -1;
+            }
+        }
 
-            Histo.Calculate(new Image<Gray, float>[] { img2Red }, true, null);
-            RedHist = new float[256];
-            Histo.MatND.ManagedArray.CopyTo(RedHist, 0);
+        private float SumOfSquares(float[] vector)
+        {
+            float sum = 0;
+            foreach (float e in vector)
+                sum += e * e;
+            return sum;
+        }
+
+        private float LenghtEuklides(float[] vector)
+        {
+            float sumOfSquares = SumOfSquares(vector);
+            return (float)Math.Sqrt(sumOfSquares);
+        }
+
+        private float ScalarMultipy(float[] firstVector, float[] secondVector)
+        {
+            float sumOfMultiply = SumOfMultiply(firstVector, secondVector);
+            return sumOfMultiply;
+        }
+
+        private float CosinusDistance(float[] firstHistogram, float[] secondHistogram)
+        {
+            try
+            {
+                float cosinus = ScalarMultipy(firstHistogram, secondHistogram) / (LenghtEuklides(firstHistogram) * LenghtEuklides(secondHistogram));
+                return (1-cosinus);
+            }
+            catch (ArgumentOutOfRangeException exception)
+            {
+                System.Windows.MessageBoxResult mb = System.Windows.MessageBox.Show(exception.Message,"Alert", MessageBoxButton.OK,MessageBoxImage.Warning);
+                return -1;
+            }
+        }
+
+        private float SumOfMultiply(float[] firstVector, float[] secondVector)
+        {
+            float sum = 0;
+            for (int i = 0; i < firstVector.Length; i++)
+                sum += firstVector[i] * secondVector[i];
+            return sum;
+        }
+
+        private float Corelation(float[] firstHistogram, float[] secondHistogram)
+        {
+            float sumOfMultiply = SumOfMultiply(firstHistogram, secondHistogram);
+            float sumOfSquares = SumOfSquares(firstHistogram);
+            return sumOfMultiply / sumOfSquares;
+        }
+
+        private float SumOfDifferenceSquared(float[] firstVector, float[] secondVector)
+        {
+            float sum = 0;
+            float dif = 0;
+            for (int i = 0; i < firstVector.Length; i++)
+            {
+                dif = firstVector[i] - secondVector[i];
+                sum+= dif*dif;
+            }
+            return sum;
+        }
+
+        private float EuklidesDistance(float[] firstHistogram, float[] secondHistogram)
+        {
+            try
+            {
+                float sumOfDifferenceSquared= SumOfDifferenceSquared(firstHistogram,secondHistogram);
+                return (float)Math.Sqrt(sumOfDifferenceSquared);
+            }
+            catch (ArgumentOutOfRangeException exception)
+            {
+                System.Windows.MessageBoxResult mb = System.Windows.MessageBox.Show(exception.Message, "Alert", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return -1;
+            }
+        }
+
+        private float SumOfMax(float[] firstVector, float[] secondVector)
+        {
+            float sum = 0;
+            for (int i = 0; i < firstVector.Length; i++)
+                sum += Math.Max(firstVector[i], secondVector[i]);
+            return sum;
+        }
+
+        private float SectionDistance(float[] firstHistogram, float[] secondHistogram)
+        {
+            try
+            {
+                float distance = 1 - SumOfMax(firstHistogram, secondHistogram) / firstHistogram.Length;
+                return 1;
+            }
+            catch (ArgumentOutOfRangeException exception)
+            {
+                System.Windows.MessageBoxResult mb = System.Windows.MessageBox.Show(exception.Message, "Alert", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return -1;
+            }
         }
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
@@ -120,7 +230,11 @@ namespace SearchingIamges
             Image<Bgr, float> source = ConvertSourceToImage(OrginalImage.Source);
             Image<Bgr, float> processImage = Quantization(source);
             ProcessImage.Source = BitmapSourceConvert.ToBitmapSource(processImage);
-            Histogram(processImage);
+            float[] h1 = Histogram(processImage);
+            float[] h2 = Histogram(source);
+            float d = ManhattanDistance(h1, h1);
+            d++;
+            
         }
         #endregion
 
