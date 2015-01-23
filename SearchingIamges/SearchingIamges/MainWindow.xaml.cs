@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -23,14 +24,27 @@ namespace SearchingIamges
     public partial class MainWindow : MetroWindow
     {
         public ObservableCollection<BasicImage> ImagesList { get; private set; }
+        private readonly BackgroundWorker backgroundWorker = new BackgroundWorker();
 
-        public List<Accent> AccentColors { get; set; }
         public MainWindow()
         {
             InitializeComponent();
+            backgroundWorker.DoWork += backgroundWorker_DoWork;
+            backgroundWorker.RunWorkerCompleted += backgroundWorker_RunWorkerCompleted;
             PrepareImage();
             comboBoxImages.ItemsSource = ImagesList;
             comboBoxAlgorithm.ItemsSource = AlgorithmName.algorithmsTable;
+
+        }
+
+        private void backgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs completedEventArgs)
+        {
+
+        }
+
+        private void backgroundWorker_DoWork(object sender, DoWorkEventArgs doWorkEvent)
+        {
+            
         }
 
         #region kwantyzacja
@@ -227,6 +241,10 @@ namespace SearchingIamges
             }
         }
 
+        
+        #endregion
+
+        #region Events
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
             Image<Bgr, float> source = ConvertSourceToImage(OrginalImage.Source);
@@ -236,11 +254,9 @@ namespace SearchingIamges
             float[] h2 = Histogram(source);
             float d = ManhattanDistance(h1, h1);
             d++;
-            
-        }
-        #endregion
 
-        #region Events
+        }
+
         private void comboBoxImages_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             var item = (sender as ComboBox).SelectedItem  as BasicImage;
@@ -251,6 +267,12 @@ namespace SearchingIamges
             }
 
         }
+        private void ComboBoxAlgorithm_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
+        }
+
+        
         #endregion
 
         #region Private Methods
@@ -272,9 +294,6 @@ namespace SearchingIamges
         }
         #endregion
 
-        private void ComboBoxAlgorithm_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            
-        }
+        
     }
 }
