@@ -13,6 +13,7 @@ using Emgu.CV.Structure;
 using Emgu.CV.CvEnum;
 using MahApps.Metro;
 using MahApps.Metro.Controls;
+using SearchingIamges.Enums;
 
 namespace SearchingIamges
 {
@@ -29,6 +30,7 @@ namespace SearchingIamges
             InitializeComponent();
             PrepareImage();
             comboBoxImages.ItemsSource = ImagesList;
+            comboBoxAlgorithm.ItemsSource = AlgorithmName.algorithmsTable;
         }
 
         #region kwantyzacja
@@ -269,5 +271,10 @@ namespace SearchingIamges
             ImagesList = observableCollection;
         }
         #endregion
+
+        private void ComboBoxAlgorithm_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            
+        }
     }
 }

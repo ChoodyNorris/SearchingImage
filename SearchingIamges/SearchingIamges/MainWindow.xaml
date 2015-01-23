@@ -52,6 +52,9 @@
                                     </DataTemplate>
                                 </ComboBox.ItemTemplate>
                             </ComboBox>
+                            <ComboBox Name="comboBoxAlgorithm" Margin="10" SelectionChanged="ComboBoxAlgorithm_OnSelectionChanged">
+                                
+                            </ComboBox>
                             <Button Margin="10" Content="Oblicz" Click="Button_Click_1" Style="{StaticResource AccentedSquareButtonStyle}"/>
                         </StackPanel>
                     </StackPanel>
