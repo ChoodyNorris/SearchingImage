@@ -3,6 +3,7 @@
         xmlns:ControlsMetroWindow="http://metro.mahapps.com/winfx/xaml/controls"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:searchingIamges="clr-namespace:SearchingIamges"
+        xmlns:converters="clr-namespace:SearchingIamges.Converters"
         Title="Searching Image" Height="421" Width="679"
                                  GlowBrush="{DynamicResource AccentColorBrush}"
                                  WindowTransitionsEnabled="False"
@@ -11,6 +12,7 @@
                                  ShowIconOnTitleBar="True">
 
     <ControlsMetroWindow:MetroWindow.Resources>
+        <converters:ConverterSelectedItem x:Key="ConverterSelectedItem" />
         <DataTemplate x:Key="ImageTemplate">
             <WrapPanel Orientation="Horizontal">
                 <Image Source="{Binding}" 
@@ -55,7 +57,7 @@
                             <ComboBox Name="comboBoxAlgorithm" Margin="10" SelectionChanged="ComboBoxAlgorithm_OnSelectionChanged">
                                 
                             </ComboBox>
-                            <Button Margin="10" Content="Oblicz" Click="Button_Click_1" Style="{StaticResource AccentedSquareButtonStyle}"/>
+                            <Button Margin="10" Content="Oblicz" Click="Button_Click_1" IsEnabled="{Binding Path=SelectedItem, ElementName=comboBoxAlgorithm, Converter={StaticResource ConverterSelectedItem}}" Style="{StaticResource AccentedSquareButtonStyle}"/>
                         </StackPanel>
                     </StackPanel>
                     <WrapPanel Orientation="Horizontal" Grid.Column="0" Grid.Row="1" Margin="5">
@@ -80,12 +82,16 @@
                         <!--<ItemsControl Name="ResultItemsControl" ItemTemplate="{StaticResource ImageTemplate}">
                             
                         </ItemsControl>-->
+                        
                         <WrapPanel Orientation="Horizontal">
-
+                            
                             <Image Height="100" Width="100" Name="ProcessImage" Margin="5"/>
+                            
 
                         </WrapPanel>
                     </ScrollViewer>
+
+                    <ControlsMetroWindow:ProgressRing Name="ringBar" IsActive="False" Grid.RowSpan="1" Grid.Row="0" Grid.Column="1" VerticalAlignment="Bottom" HorizontalAlignment="Center" Height="50" Width="50"></ControlsMetroWindow:ProgressRing>
 
 
                 </Grid>

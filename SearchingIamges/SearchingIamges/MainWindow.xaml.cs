@@ -14,6 +14,7 @@ using Emgu.CV.Structure;
 using Emgu.CV.CvEnum;
 using MahApps.Metro;
 using MahApps.Metro.Controls;
+using MahApps.Metro.Controls.Dialogs;
 using SearchingIamges.Enums;
 
 namespace SearchingIamges
@@ -23,8 +24,22 @@ namespace SearchingIamges
     /// </summary>
     public partial class MainWindow : MetroWindow
     {
-        public ObservableCollection<BasicImage> ImagesList { get; private set; }
+
         private readonly BackgroundWorker backgroundWorker = new BackgroundWorker();
+
+        #region Properties
+        public ObservableCollection<BasicImage> ImagesList { get; private set; }
+        public string SelectedAlgorithm { get; set; }
+
+        public Image<Bgr, float> processImage { get; set; }
+        public Image<Bgr, float> source { get; set; }
+
+        public string IterationsValue { get; set; }
+        public string EpsilonValue { get; set; }
+        public string ClusterCountValue { get; set; }
+        public string AttemptsValue { get; set; }
+        #endregion
+
 
         public MainWindow()
         {
@@ -37,22 +52,7 @@ namespace SearchingIamges
 
         }
 
-        private void backgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs completedEventArgs)
-        {
-
-        }
-
-        private void backgroundWorker_DoWork(object sender, DoWorkEventArgs doWorkEvent)
-        {
-            
-        }
-
         #region kwantyzacja
-        private void image1_Initialized(object sender, EventArgs e)
-        {
-        }
-
-
 
         private Image<Bgr, float> ConvertSourceToImage(ImageSource imgSource)
         {
@@ -75,16 +75,16 @@ namespace SearchingIamges
                 }
             }
 
-            MCvTermCriteria term = new MCvTermCriteria(Convert.ToInt32(Iterations.Text), Convert.ToDouble(Epsilon.Text));
+            MCvTermCriteria term = new MCvTermCriteria(Convert.ToInt32(IterationsValue), Convert.ToDouble(EpsilonValue));
             term.type = TERMCRIT.CV_TERMCRIT_ITER | TERMCRIT.CV_TERMCRIT_EPS;
 
-            int clusterCount = Int32.Parse(ClusterCount.Text);
-            int attempts = Int32.Parse(Attempts.Text);
+            int clusterCount = Int32.Parse(ClusterCountValue);
+            int attempts = Int32.Parse(AttemptsValue);
             CvInvoke.cvKMeans2(samples, clusterCount, finalClusters, term, attempts, IntPtr.Zero, 0, IntPtr.Zero, IntPtr.Zero);
 
             Image<Bgr, float> processImage = new Image<Bgr, float>(source.Size);
 
-            int levels = Int32.Parse(ClusterCount.Text);
+            int levels = Int32.Parse(ClusterCountValue);
             Bgr[] clusterColors = new Bgr[levels];
 
             for (int i = 0; i < levels; i++)
@@ -102,7 +102,7 @@ namespace SearchingIamges
             return processImage;
         }
 
-        private float[] Histogram(Image<Bgr,float> img)
+        private float[] Histogram(Image<Bgr, float> img)
         {
             float[] BlueHist;
 
@@ -119,40 +119,89 @@ namespace SearchingIamges
             return BlueHist;
         }
 
-        
 
-        
+
+
         #endregion
 
         #region Events
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
-            Image<Bgr, float> source = ConvertSourceToImage(OrginalImage.Source);
-            Image<Bgr, float> processImage = Quantization(source);
-            ProcessImage.Source = BitmapSourceConvert.ToBitmapSource(processImage);
-            float[] h1 = Histogram(processImage);
-            float[] h2 = Histogram(source);
-            float d = Algorithms.Manhattan(h1, h1);
-            d++;
-
+            ringBar.IsActive = true;
+            IterationsValue = Iterations.Text;
+            ClusterCountValue = ClusterCount.Text;
+            EpsilonValue = Epsilon.Text;
+            AttemptsValue = Attempts.Text;
+            ProcessImage.Visibility = Visibility.Hidden;
+            backgroundWorker.RunWorkerAsync(OrginalImage.Source);
         }
 
         private void comboBoxImages_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
-            var item = (sender as ComboBox).SelectedItem  as BasicImage;
+            var item = (sender as ComboBox).SelectedItem as BasicImage;
             if (item != null)
             {
-                var pathUri = new Uri(string.Format(@"{0}", item.ImageUri),UriKind.Relative);
+                var pathUri = new Uri(string.Format(@"{0}", item.ImageUri), UriKind.Relative);
                 OrginalImage.Source = new BitmapImage(pathUri);
             }
 
         }
         private void ComboBoxAlgorithm_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            string comboBoxItem = ((sender as ComboBox).SelectedValue as string);
+            if (comboBoxItem != null)
+            {
+                SelectedAlgorithm = comboBoxItem;
+            }
 
         }
 
-        
+        private void backgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs completedEventArgs)
+        {
+            ringBar.IsActive = false;
+            ProcessImage.Visibility = Visibility.Visible;
+            if (processImage != null)
+                ProcessImage.Source = BitmapSourceConvert.ToBitmapSource(processImage);
+
+        }
+
+        private void backgroundWorker_DoWork(object sender, DoWorkEventArgs doWorkEvent)
+        {
+            try
+            {
+
+                switch (SelectedAlgorithm)
+                {
+                    case AlgorithmName.Manhattan:
+                        source = ConvertSourceToImage(doWorkEvent.Argument as ImageSource);
+                        processImage = Quantization(source);
+
+                        float[] h1 = Histogram(processImage);
+                        float[] h2 = Histogram(source);
+                        float d = Algorithms.Manhattan(h1, h1);
+                        d++;
+                        break;
+                    case AlgorithmName.Corelation:
+                        throw new NotImplementedException();
+                        break;
+                    case AlgorithmName.Cosinus:
+                        throw new NotImplementedException();
+                        break;
+                    case AlgorithmName.PrzekrojHistogramow:
+                        throw new NotImplementedException();
+                        break;
+                    case AlgorithmName.Euklidesa:
+                        throw new NotImplementedException();
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+
         #endregion
 
         #region Private Methods
@@ -174,6 +223,6 @@ namespace SearchingIamges
         }
         #endregion
 
-        
+
     }
 }

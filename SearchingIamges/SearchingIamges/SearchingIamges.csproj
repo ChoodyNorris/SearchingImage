@@ -94,6 +94,7 @@
     </Compile>
     <Compile Include="BasicImage.cs" />
     <Compile Include="BitmapSourceConvert.cs" />
+    <Compile Include="Converters\ConverterSelectedItem.cs" />
     <Compile Include="Enums\AlgorithmName.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
@@ -145,6 +146,7 @@
     <Content Include="opencv_imgproc220.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Resource Include="Resources\loader.gif" />
     <Resource Include="Resources\Entypo-license.txt" />
     <Resource Include="Resources\WindowsIcons-license.txt" />
   </ItemGroup>

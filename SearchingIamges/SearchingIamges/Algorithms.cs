@@ -58,6 +58,7 @@ namespace SearchingIamges
             return sum;
         }
         #endregion
+
         #region MetodyDoLiczeniaOdległości
         public static float Manhattan(float[] firstHistogram, float[] secondHistogram)
         {
